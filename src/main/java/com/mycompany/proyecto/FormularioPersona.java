@@ -11,6 +11,7 @@ public class FormularioPersona extends Formulario {
 
     public FormularioPersona() {
         super("Gestion de Personas");
+        actualizarTabla();
     }
 
     private void ejecutar(String sql, String mensajeExito) {
@@ -20,8 +21,33 @@ public class FormularioPersona extends Formulario {
             st.executeUpdate(sql);
             con.close();
             JOptionPane.showMessageDialog(this, mensajeExito);
+            actualizarTabla();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }
+
+    private void actualizarTabla() {
+        try {
+            Connection con = conexionBD.conectar();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * FROM persona");
+
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            while (rs.next()) {
+                lista.add(new Object[]{
+                    rs.getInt("ID persona"),
+                    rs.getString("nombre persona"),
+                    rs.getInt("edad")
+                });
+            }
+            con.close();
+
+            Object[][] filas = lista.toArray(new Object[0][]);
+            String[] columnas = {"ID", "Nombre", "Edad"};
+            cargarDatos(columnas, filas);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar tabla: " + e.getMessage());
         }
     }
 
@@ -31,7 +57,7 @@ public class FormularioPersona extends Formulario {
         String edad = JOptionPane.showInputDialog(this, "Edad:");
         ejecutar("INSERT INTO persona ([nombre persona], edad) VALUES ('" + nombre + "', " + edad + ")", "Persona insertada");
     }
-    
+
     @Override
     public void modificar() {
         String id = JOptionPane.showInputDialog(this, "ID a modificar:");
@@ -48,21 +74,6 @@ public class FormularioPersona extends Formulario {
 
     @Override
     public void consultar() {
-        String resultado = "";
-        try {
-            Connection con = conexionBD.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM persona");
-            while (rs.next()) {
-                resultado += "ID: " + rs.getInt("ID persona")
-                        + " | Nombre: " + rs.getString("nombre persona")
-                        + " | Edad: " + rs.getInt("edad") + "\n";
-            }
-            con.close();
-            JOptionPane.showMessageDialog(this, resultado);
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
-        }
+        actualizarTabla();
     }
-
-       }
+}
